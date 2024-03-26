@@ -30,7 +30,7 @@ class TextLexer(TestCase):
 
         self.assertEqual(eofToken.type, TokenTypes.EOF)
 
-def testParsingTokenIsCorret(self) -> None:
+    def testParsingTokenIsCorret(self) -> None:
         text = "1&0"
 
         tokensExpected = [
@@ -40,7 +40,7 @@ def testParsingTokenIsCorret(self) -> None:
             ),
             Token(
                 type = TokenTypes.AND,
-                value = TokenTypes.OR.name
+                value = TokenTypes.AND.name
             ),
             Token(
                 type = TokenTypes.LOGIC,
@@ -55,3 +55,10 @@ def testParsingTokenIsCorret(self) -> None:
         tokens = self.lexer.process(text)
 
         self.assertEqual(tokensExpected, tokens)
+
+    def testSkipWhiteSpace(self) -> None:
+        text = "1 & 0"
+
+        tokens = self.lexer.process(text)
+
+        self.assertTrue(len(tokens) == len(text) - 1)

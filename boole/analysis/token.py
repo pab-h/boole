@@ -13,6 +13,7 @@ class TokenTypes(Enum):
     LOGIC = auto()
     LEFTBRACKET = auto()
     RIGHTBRACKET = auto()
+    WHITESPACE = auto()
 
 class Token(object): 
     def __init__(self, type: TokenTypes, value: Union[str, bool, None]) -> None:
@@ -20,7 +21,7 @@ class Token(object):
         self.value = value
     
     def __repr__(self) -> str:
-        return f"Token[{ self.type }, { self.value }]"
+        return f"Token[{ self.type.name }, { self.value }]"
 
     def __eq__(self, otherToken: 'Token') -> bool:
         return self.type == otherToken.type and\

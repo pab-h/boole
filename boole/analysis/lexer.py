@@ -33,6 +33,12 @@ class Lexer(object):
                 type = TokenTypes.RIGHTBRACKET,
                 value = charactere 
             )
+        
+        if charactere in " ":
+            return Token(
+                type = TokenTypes.WHITESPACE,
+                value = " "
+            )
 
         raise TokenError(f"token '{charactere}' is not valid")
 
@@ -41,6 +47,10 @@ class Lexer(object):
 
         for charactere in text: 
             token = self.createToken(charactere)
+
+            if token.type == TokenTypes.WHITESPACE:
+                continue
+
             tokens.append(token)
 
         eof = Token(
