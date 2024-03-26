@@ -22,6 +22,18 @@ class Lexer(object):
                 value = charactere == "1"
             )
         
+        if charactere in "({[":
+            return Token(
+                type = TokenTypes.LEFTBRACKET,
+                value = charactere 
+            )
+        
+        if charactere in "]})":
+            return Token(
+                type = TokenTypes.RIGHTBRACKET,
+                value = charactere 
+            )
+
         raise TokenError(f"token '{charactere}' is not valid")
 
     def process(self, text) -> list[Token]:

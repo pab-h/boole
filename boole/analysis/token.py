@@ -11,6 +11,8 @@ class TokenTypes(Enum):
     AND = auto()
     OR = auto()
     LOGIC = auto()
+    LEFTBRACKET = auto()
+    RIGHTBRACKET = auto()
 
 class Token(object): 
     def __init__(self, type: TokenTypes, value: Union[str, bool, None]) -> None:
