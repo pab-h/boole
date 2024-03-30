@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "boole"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = ["pab-h <dev.pab.2020@gmail.com>"]
 readme = "README.md"
@@ -15,4 +15,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 test = "scripts:test"
-start = "scripts:start"
+idle = "scripts:main"
