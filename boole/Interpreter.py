@@ -2,6 +2,7 @@ from boole.analysis.parser import Parser
 
 from boole.analysis.ast import AST
 from boole.analysis.ast import BinaryOperator
+from boole.analysis.ast import UnaryOperator
 from boole.analysis.ast import Logic
 from boole.analysis.ast import ASTNodeTypes
 
@@ -13,6 +14,12 @@ class InterpreterError(Exception):
 class Interpreter(object):
     def __init__(self) -> None:
         self.parser = Parser()
+
+    def visitUnaryOperator(self, node: UnaryOperator) -> bool:
+        if node.token.type == TokenTypes.NOT:
+            return not self.visit(node.expr)
+        
+        raise InterpreterError("invalid unary operator")
 
     def visitBinaryOperator(self, node: BinaryOperator) -> bool:
         token = node.token
@@ -29,6 +36,9 @@ class Interpreter(object):
         return node.value
 
     def visit(self, node: AST) -> bool:
+
+        if node.type == ASTNodeTypes.UNARYOPERATOR:
+            return self.visitUnaryOperator(node)
 
         if node.type == ASTNodeTypes.BINARYOPERATOR:
             return self.visitBinaryOperator(node)

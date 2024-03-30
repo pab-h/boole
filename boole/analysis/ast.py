@@ -8,6 +8,7 @@ from typing import Optional
 class ASTNodeTypes(Enum):
     ABSTRACT = auto()
     BINARYOPERATOR = auto()
+    UNARYOPERATOR = auto()
     LOGIC = auto()
 
 class AST(object):
@@ -21,12 +22,21 @@ class AST(object):
 class BinaryOperator(AST):
     def __init__(self, token: Token) -> None:
         super().__init__(token)
+
         self.type = ASTNodeTypes.BINARYOPERATOR
-        self.left: Optional[AST] = None 
-        self.right: Optional[AST] = None 
+        self.left: AST = None 
+        self.right: AST = None 
+
+class UnaryOperator(AST):
+    def __init__(self, token: Token) -> None:
+        super().__init__(token)
+
+        self.type = ASTNodeTypes.UNARYOPERATOR
+        self.expr: AST = None 
 
 class Logic(AST):
     def __init__(self, token: Token) -> None:
         super().__init__(token)
+
         self.type = ASTNodeTypes.LOGIC
         self.value = token.value

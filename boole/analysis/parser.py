@@ -1,5 +1,6 @@
 from boole.analysis.ast import AST 
 from boole.analysis.ast import BinaryOperator 
+from boole.analysis.ast import UnaryOperator
 from boole.analysis.ast import Logic 
 
 from boole.analysis.lexer import Lexer
@@ -41,6 +42,15 @@ class Parser(object):
 
             return node
         
+        if self.currentToken().type == TokenTypes.NOT:
+            notToken = self.currentToken()
+            self.eat(TokenTypes.NOT)
+
+            node = UnaryOperator(notToken)
+            node.expr = self.factor()
+
+            return node
+
         raise ParserError("Unexpected token in factor")
     
     def term(self) -> AST:

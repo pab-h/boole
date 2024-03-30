@@ -40,6 +40,12 @@ class Lexer(object):
                 value = " "
             )
 
+        if charactere in "!~":
+            return Token(
+                type = TokenTypes.NOT,
+                value = charactere
+            )
+
         raise TokenError(f"token '{charactere}' is not valid")
 
     def process(self, text) -> list[Token]:

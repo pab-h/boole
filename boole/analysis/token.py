@@ -8,6 +8,7 @@ class TokenError(Exception):
 
 class TokenTypes(Enum):
     EOF = auto()
+    NOT = auto()
     AND = auto()
     OR = auto()
     LOGIC = auto()
