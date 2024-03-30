@@ -30,7 +30,7 @@ Para sair do idle, basta escrever:
 ``` exit``` 
 
 
-# Operadores
+# Operators
 
 ## AND
 ```
