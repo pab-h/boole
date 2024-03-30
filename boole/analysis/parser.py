@@ -27,7 +27,7 @@ class Parser(object):
         self.index += 1
 
     def factor(self) -> AST:
-        # factor: LOGIC('LEFTBRACKET' expr 'RIGHTBRACKET')
+        # factor: LOGIC('LEFTBRACKET' expr 'RIGHTBRACKET') | 'NOT' factor
 
         if self.currentToken().type == TokenTypes.LOGIC:
             logicToken = self.currentToken()
