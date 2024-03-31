@@ -10,7 +10,7 @@ class Lexer(object):
 
     def nextToken(self) -> Token:
         currentCharactere = self.text[self.index]
-        
+
         if currentCharactere in "&*":
             token = Token(
                 type = TokenTypes.AND,
@@ -76,7 +76,7 @@ class Lexer(object):
         
         if currentCharactere in "\n":
             token = Token(
-                type = TokenTypes.ASSIGN,
+                type = TokenTypes.BREAKLINE,
                 value = currentCharactere 
             )
             self.index += 1
@@ -88,7 +88,6 @@ class Lexer(object):
                 type = TokenTypes.IDENTIFIER,
                 value = self.identifier()
             )
-            self.index += 1
 
             return token
         
