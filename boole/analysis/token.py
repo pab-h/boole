@@ -15,6 +15,9 @@ class TokenTypes(Enum):
     LEFTBRACKET = auto()
     RIGHTBRACKET = auto()
     WHITESPACE = auto()
+    IDENTIFIER = auto()
+    ASSIGN = auto()
+    BREAKLINE = auto()
 
 class Token(object): 
     def __init__(self, type: TokenTypes, value: Union[str, bool, None]) -> None:
