@@ -56,7 +56,7 @@ class Lexer(object):
 
             return token
         
-        if currentCharactere.isspace():
+        if currentCharactere == " ":
             token = Token(
                 type = TokenTypes.WHITESPACE,
                 value = " "
@@ -74,7 +74,7 @@ class Lexer(object):
 
             return token
         
-        if currentCharactere in "\n":
+        if currentCharactere == "\n":
             token = Token(
                 type = TokenTypes.BREAKLINE,
                 value = currentCharactere 
