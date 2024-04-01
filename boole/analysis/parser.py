@@ -1,7 +1,11 @@
 from boole.analysis.ast import AST 
 from boole.analysis.ast import BinaryOperator 
 from boole.analysis.ast import UnaryOperator
-from boole.analysis.ast import Logic 
+from boole.analysis.ast import LogicLiteral 
+from boole.analysis.ast import Compound
+from boole.analysis.ast import Assignment
+from boole.analysis.ast import Variable
+from boole.analysis.ast import NoOperation
 
 from boole.analysis.lexer import Lexer
 
@@ -26,14 +30,61 @@ class Parser(object):
         
         self.index += 1
 
+    def program(self) -> AST:
+        return self.statementList()
+    
+    def statementList(self) -> AST:
+        compound = Compound()
+
+        statement = self.statement()
+        compound.statements.append(statement)
+
+        while self.currentToken().type == TokenTypes.BREAKLINE:
+            self.eat(TokenTypes.BREAKLINE)
+
+            statement = self.statement()
+            compound.statements.append(statement)
+
+        if self.currentToken().type == TokenTypes.IDENTIFIER:
+            raise ParserError(f"what { self.currentToken().value } is doing here?")
+        
+        return compound
+        
+    def statement(self) -> AST:
+        if self.currentToken().type == TokenTypes.IDENTIFIER:
+            return self.assignmentStatement()
+        
+        return self.empty()
+
+    def assignmentStatement(self) -> AST:
+        variable = self.variable()
+
+        assignment = Assignment(self.currentToken())
+        self.eat(TokenTypes.ASSIGN)
+
+        expression = self.expr() 
+
+        assignment.left = variable
+        assignment.right = expression
+
+        return assignment
+
+    def variable(self) -> AST:
+        variable = Variable(self.currentToken())
+        self.eat(TokenTypes.IDENTIFIER)
+
+        return variable
+
+    def empty(self) -> AST:
+        return NoOperation()
+
     def factor(self) -> AST:
-        # factor: LOGIC('LEFTBRACKET' expr 'RIGHTBRACKET') | 'NOT' factor
 
         if self.currentToken().type == TokenTypes.LOGIC:
             logicToken = self.currentToken()
             self.eat(TokenTypes.LOGIC)
 
-            return Logic(logicToken)
+            return LogicLiteral(logicToken)
         
         if self.currentToken().type == TokenTypes.LEFTBRACKET:
             self.eat(TokenTypes.LEFTBRACKET)
@@ -51,10 +102,9 @@ class Parser(object):
 
             return node
 
-        raise ParserError("Unexpected token in factor")
+        return self.variable()
     
     def term(self) -> AST:
-        # term: factor{'AND' factor}
 
         node = self.factor()
 
@@ -71,7 +121,6 @@ class Parser(object):
         return node
 
     def expr(self) -> AST:
-        # expr: term{'AND' term}
 
         node = self.term()
 
@@ -91,4 +140,9 @@ class Parser(object):
         self.tokens = self.lexer.process(text)
         self.index = 0
 
-        return self.expr()
+        program = self.program()
+
+        if self.currentToken().type != TokenTypes.EOF:
+            raise ParserError("Deu cu")
+
+        return program
