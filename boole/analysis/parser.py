@@ -143,6 +143,6 @@ class Parser(object):
         program = self.program()
 
         if self.currentToken().type != TokenTypes.EOF:
-            raise ParserError("Deu cu")
+            raise ParserError(f"The program is bad formated. Not expect { self.currentToken() } token")
 
         return program
