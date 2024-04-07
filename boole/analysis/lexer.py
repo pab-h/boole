@@ -8,6 +8,13 @@ class Lexer(object):
         self.index = 0
         self.textLen = 0
 
+        self.keyworlds = {
+            "bit": Token(
+                type = TokenTypes.BIT,
+                value = "bit type"
+            )
+        }
+
     def nextToken(self) -> Token:
         currentCharactere = self.text[self.index]
 
@@ -31,7 +38,7 @@ class Lexer(object):
         
         if currentCharactere in "01":
             token = Token(
-                type = TokenTypes.LOGIC,
+                type = TokenTypes.LITERALBIT,
                 value = currentCharactere == "1"
             )
             self.index += 1
@@ -84,10 +91,7 @@ class Lexer(object):
             return token
         
         if currentCharactere.isalpha():
-            token = Token(
-                type = TokenTypes.IDENTIFIER,
-                value = self.identifier()
-            )
+            token = self.identifier()
 
             return token
         
@@ -102,14 +106,22 @@ class Lexer(object):
 
         raise TokenError(f"token '{currentCharactere}' is not valid")
 
-    def identifier(self) -> str:
+    def identifier(self) -> Token:
         identifier = ""
 
         while self.textLen > self.index and self.text[self.index].isalpha():
             identifier = identifier + self.text[self.index]
             self.index += 1
 
-        return identifier
+        token = self.keyworlds.get(
+            identifier,
+            Token(
+                type = TokenTypes.IDENTIFIER,
+                value = identifier
+            )
+        )
+
+        return token
 
     def process(self, text) -> list[Token]:
         self.text = text
