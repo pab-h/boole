@@ -1,11 +1,4 @@
-from boole.analysis.ast import AST 
-from boole.analysis.ast import BinaryOperator 
-from boole.analysis.ast import UnaryOperator
-from boole.analysis.ast import LogicLiteral 
-from boole.analysis.ast import Compound
-from boole.analysis.ast import Assignment
-from boole.analysis.ast import Variable
-from boole.analysis.ast import NoOperation
+from boole.analysis.ast import *
 
 from boole.analysis.lexer import Lexer
 
@@ -51,10 +44,29 @@ class Parser(object):
         return compound
         
     def statement(self) -> AST:
+        if self.currentToken().type == TokenTypes.BIT:
+            return self.declarationStatement()
+
         if self.currentToken().type == TokenTypes.IDENTIFIER:
             return self.assignmentStatement()
         
         return self.empty()
+    
+    def type(self) -> AST:
+        type = Type(self.currentToken())
+        
+        if type.token.type == TokenTypes.BIT:
+            self.eat(TokenTypes.BIT)
+
+        return type
+
+    def declarationStatement(self) -> AST:
+        declaration = VariableDeclaration()
+
+        declaration.variableType = self.type()
+        declaration.assignment = self.assignmentStatement() 
+
+        return declaration
 
     def assignmentStatement(self) -> AST:
         variable = self.variable()
@@ -80,9 +92,9 @@ class Parser(object):
 
     def factor(self) -> AST:
 
-        if self.currentToken().type == TokenTypes.LOGIC:
+        if self.currentToken().type == TokenTypes.LITERALBIT:
             logicToken = self.currentToken()
-            self.eat(TokenTypes.LOGIC)
+            self.eat(TokenTypes.LITERALBIT)
 
             return LogicLiteral(logicToken)
         
