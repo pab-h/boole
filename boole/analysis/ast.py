@@ -12,6 +12,8 @@ class ASTNodeTypes(Enum):
     ASSIGN = auto()
     VARIABLE = auto()
     NOOPERATION = auto()
+    VARIABLEDECLARATION = auto()
+    TYPE = auto()
 
 class AST(object):
     def __init__(self) -> None:
@@ -65,6 +67,21 @@ class Variable(AST):
         self.type = ASTNodeTypes.VARIABLE
         self.token = token
         self.value = self.token.value
+
+class Type(AST):
+    def __init__(self, token: Token) -> None:
+        super().__init__()
+        self.type == ASTNodeTypes.TYPE
+        self.token = token
+
+class VariableDeclaration(AST):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.type = ASTNodeTypes.VARIABLEDECLARATION
+
+        self.variableType: Type = None
+        self.assignment: Assignment = None
 
 class NoOperation(AST):
     def __init__(self) -> None:
