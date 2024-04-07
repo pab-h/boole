@@ -1,14 +1,6 @@
 from boole.analysis.parser import Parser
 
-from boole.analysis.ast import AST
-from boole.analysis.ast import BinaryOperator
-from boole.analysis.ast import UnaryOperator
-from boole.analysis.ast import LogicLiteral
-from boole.analysis.ast import ASTNodeTypes
-from boole.analysis.ast import Compound
-from boole.analysis.ast import Assignment
-from boole.analysis.ast import Variable
-from boole.analysis.ast import NoOperation
+from boole.analysis.ast import *
 
 from boole.analysis.token import TokenTypes
 
@@ -65,7 +57,19 @@ class Interpreter(object):
 
         return variableValue
 
-    def visit(self, node: AST) -> bool:
+    def visitType(self, node: Type) -> None:
+        pass
+
+    def visitVariableDeclaration(self, node: VariableDeclaration) -> None:
+        return self.visit(node.assignment)
+
+    def visit(self, node: AST) -> Optional[bool]:
+        if node.type == ASTNodeTypes.VARIABLEDECLARATION:
+            return self.visitVariableDeclaration(node)
+
+        if node.type == ASTNodeTypes.TYPE:
+            return self.visitType(node)
+
         if node.type == ASTNodeTypes.NOOPERATION:
             return self.visitNoOperation(node)
 
