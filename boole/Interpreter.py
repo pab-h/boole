@@ -14,13 +14,13 @@ class Interpreter(object):
         self.parser = Parser()
         self.variables: dict[str, bool] = {}
 
-    def visitUnaryOperator(self, node: UnaryOperator) -> bool:
+    def visitUnaryOperator(self, node: UnaryOperatorNode) -> bool:
         if node.token.type == TokenTypes.NOT:
             return not self.visit(node.expr)
         
         raise InterpreterError("invalid unary operator")
 
-    def visitBinaryOperator(self, node: BinaryOperator) -> bool:
+    def visitBinaryOperator(self, node: BinaryOperatorNode) -> bool:
         token = node.token
 
         if token.type == TokenTypes.AND:
@@ -31,24 +31,24 @@ class Interpreter(object):
         
         raise InterpreterError("invalid binary operator")
 
-    def visitLogic(self, node: LogicLiteral) -> bool:
+    def visitLiteralBit(self, node: LiteralBitNode) -> bool:
         return node.value
 
-    def visitCompound(self, node: Compound) -> None:
+    def visitCompound(self, node: CompoundNode) -> None:
         for statement in node.statements:
             self.visit(statement)
 
-    def visitNoOperation(self, node: NoOperation) -> None:
+    def visitNoOperation(self, node: NoOperationNode) -> None:
         return None
 
-    def visitAssign(self, node: Assignment) -> None:
+    def visitAssign(self, node: AssignmentNode) -> None:
         variableName = node.left.value
 
         self.variables.update({
             variableName: self.visit(node.right)
         })
 
-    def visitVariable(self, node: Variable) -> Optional[None]:
+    def visitVariable(self, node: VariableNode) -> Optional[None]:
         variableName = node.value
         variableValue = self.variables.get(variableName)
 
@@ -57,10 +57,10 @@ class Interpreter(object):
 
         return variableValue
 
-    def visitType(self, node: Type) -> None:
+    def visitType(self, node: TypeNode) -> None:
         pass
 
-    def visitVariableDeclaration(self, node: VariableDeclaration) -> None:
+    def visitVariableDeclaration(self, node: VariableDeclarationNode) -> None:
         return self.visit(node.assignment)
 
     def visit(self, node: AST) -> Optional[bool]:
@@ -88,7 +88,7 @@ class Interpreter(object):
         if node.type == ASTNodeTypes.BINARYOPERATOR:
             return self.visitBinaryOperator(node)
         
-        if node.type == ASTNodeTypes.LOGICLITERAL:
+        if node.type == ASTNodeTypes.LITERALBIT:
             return self.visitLogic(node)
 
         raise InterpreterError("Invalid AST node")

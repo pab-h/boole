@@ -27,7 +27,7 @@ class Parser(object):
         return self.statementList()
     
     def statementList(self) -> AST:
-        compound = Compound()
+        compound = CompoundNode()
 
         statement = self.statement()
         compound.statements.append(statement)
@@ -53,7 +53,7 @@ class Parser(object):
         return self.empty()
     
     def type(self) -> AST:
-        type = Type(self.currentToken())
+        type = TypeNode(self.currentToken())
         
         if type.token.type == TokenTypes.BIT:
             self.eat(TokenTypes.BIT)
@@ -61,7 +61,7 @@ class Parser(object):
         return type
 
     def declarationStatement(self) -> AST:
-        declaration = VariableDeclaration()
+        declaration = VariableDeclarationNode()
 
         declaration.variableType = self.type()
         declaration.assignment = self.assignmentStatement() 
@@ -71,7 +71,7 @@ class Parser(object):
     def assignmentStatement(self) -> AST:
         variable = self.variable()
 
-        assignment = Assignment(self.currentToken())
+        assignment = AssignmentNode(self.currentToken())
         self.eat(TokenTypes.ASSIGN)
 
         expression = self.expr() 
@@ -82,13 +82,13 @@ class Parser(object):
         return assignment
 
     def variable(self) -> AST:
-        variable = Variable(self.currentToken())
+        variable = VariableNode(self.currentToken())
         self.eat(TokenTypes.IDENTIFIER)
 
         return variable
 
     def empty(self) -> AST:
-        return NoOperation()
+        return NoOperationNode()
 
     def factor(self) -> AST:
 
@@ -96,7 +96,7 @@ class Parser(object):
             logicToken = self.currentToken()
             self.eat(TokenTypes.LITERALBIT)
 
-            return LogicLiteral(logicToken)
+            return LiteralBitNode(logicToken)
         
         if self.currentToken().type == TokenTypes.LEFTBRACKET:
             self.eat(TokenTypes.LEFTBRACKET)
@@ -109,7 +109,7 @@ class Parser(object):
             notToken = self.currentToken()
             self.eat(TokenTypes.NOT)
 
-            node = UnaryOperator(notToken)
+            node = UnaryOperatorNode(notToken)
             node.expr = self.factor()
 
             return node
@@ -124,7 +124,7 @@ class Parser(object):
             operator = self.currentToken()
             self.eat(TokenTypes.AND)
 
-            newNode = BinaryOperator(operator)
+            newNode = BinaryOperatorNode(operator)
             newNode.left = node
             newNode.right = self.factor()
 
@@ -140,7 +140,7 @@ class Parser(object):
             operator = self.currentToken()
             self.eat(TokenTypes.OR)
 
-            newNode = BinaryOperator(operator)
+            newNode = BinaryOperatorNode(operator)
             newNode.left = node
             newNode.right = self.term()
             

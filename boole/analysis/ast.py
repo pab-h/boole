@@ -7,7 +7,7 @@ class ASTNodeTypes(Enum):
     ABSTRACT = auto()
     BINARYOPERATOR = auto()
     UNARYOPERATOR = auto()
-    LOGICLITERAL = auto()
+    LITERALBIT = auto()
     COMPOUND = auto()
     ASSIGN = auto()
     VARIABLE = auto()
@@ -22,7 +22,7 @@ class AST(object):
     def __repr__(self) -> str:
         return f"AST[type = { self.type.name }]"
 
-class BinaryOperator(AST):
+class BinaryOperatorNode(AST):
     def __init__(self, token: Token) -> None:
         super().__init__()
 
@@ -31,7 +31,7 @@ class BinaryOperator(AST):
         self.left: AST = None 
         self.right: AST = None 
 
-class UnaryOperator(AST):
+class UnaryOperatorNode(AST):
     def __init__(self, token: Token) -> None:
         super().__init__()
 
@@ -39,28 +39,28 @@ class UnaryOperator(AST):
         self.type = ASTNodeTypes.UNARYOPERATOR
         self.expr: AST = None 
 
-class LogicLiteral(AST):
+class LiteralBitNode(AST):
     def __init__(self, token: Token) -> None:
         super().__init__()
 
         self.token = token
-        self.type = ASTNodeTypes.LOGICLITERAL
+        self.type = ASTNodeTypes.LITERALBIT
         self.value = token.value
 
-class Compound(AST):
+class CompoundNode(AST):
     def __init__(self) -> None:
         super().__init__()
 
         self.type = ASTNodeTypes.COMPOUND
         self.statements: list[AST] = []
 
-class Assignment(BinaryOperator):
+class AssignmentNode(BinaryOperatorNode):
     def __init__(self, token: Token) -> None:
         super().__init__(token)
 
         self.type = ASTNodeTypes.ASSIGN
 
-class Variable(AST):
+class VariableNode(AST):
     def __init__(self, token: Token) -> None:
         super().__init__()
 
@@ -68,22 +68,22 @@ class Variable(AST):
         self.token = token
         self.value = self.token.value
 
-class Type(AST):
+class TypeNode(AST):
     def __init__(self, token: Token) -> None:
         super().__init__()
         self.type == ASTNodeTypes.TYPE
         self.token = token
 
-class VariableDeclaration(AST):
+class VariableDeclarationNode(AST):
     def __init__(self) -> None:
         super().__init__()
 
         self.type = ASTNodeTypes.VARIABLEDECLARATION
 
-        self.variableType: Type = None
-        self.assignment: Assignment = None
+        self.variableType: TypeNode = None
+        self.assignment: AssignmentNode = None
 
-class NoOperation(AST):
+class NoOperationNode(AST):
     def __init__(self) -> None:
         super().__init__()
 
