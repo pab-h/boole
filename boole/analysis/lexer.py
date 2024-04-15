@@ -11,7 +11,7 @@ class Lexer(object):
         self.keyworlds = {
             "bit": Token(
                 type = TokenTypes.BIT,
-                value = "bit type"
+                value = TokenTypes.BIT.name
             )
         }
 
