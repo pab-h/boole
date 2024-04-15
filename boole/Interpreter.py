@@ -1,8 +1,8 @@
 from boole.analysis.parser import Parser
-
 from boole.analysis.ast import *
-
 from boole.analysis.token import TokenTypes
+from boole.analysis.symbolTable import SymbolTable
+from boole.analysis.symbolTable import SymbolTableBuilder
 
 from typing import Optional
 
@@ -13,6 +13,8 @@ class Interpreter(object):
     def __init__(self) -> None:
         self.parser = Parser()
         self.variables: dict[str, bool] = {}
+        self.symbolTableBuilder = SymbolTableBuilder()
+        self.symbolTable: SymbolTable = None 
 
     def visitUnaryOperator(self, node: UnaryOperatorNode) -> bool:
         if node.token.type == TokenTypes.NOT:
@@ -43,19 +45,17 @@ class Interpreter(object):
 
     def visitAssign(self, node: AssignmentNode) -> None:
         variableName = node.left.value
+        variableSymbol = self.symbolTable.lookup(variableName)
+
+        if not variableSymbol:
+             raise InterpreterError(f"{ variableName } not declared")
 
         self.variables.update({
             variableName: self.visit(node.right)
         })
 
-    def visitVariable(self, node: VariableNode) -> Optional[None]:
-        variableName = node.value
-        variableValue = self.variables.get(variableName)
-
-        if variableValue == None:
-            raise InterpreterError(f"variable { variableName } not found")
-
-        return variableValue
+    def visitVariable(self, node: VariableNode) -> bool:
+        return self.variables.get(node.value)
 
     def visitType(self, node: TypeNode) -> None:
         pass
@@ -89,11 +89,12 @@ class Interpreter(object):
             return self.visitBinaryOperator(node)
         
         if node.type == ASTNodeTypes.LITERALBIT:
-            return self.visitLogic(node)
+            return self.visitLiteralBit(node)
 
         raise InterpreterError("Invalid AST node")
 
     def eval(self, text): 
         ast = self.parser.parse(text)
+        self.symbolTable = self.symbolTableBuilder.build(ast)
 
         return self.visit(ast)
