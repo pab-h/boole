@@ -1,5 +1,5 @@
 # boole
-A interpreter for Boolean Algebra
+Um interpretador para a álgebra booleana
 
 # Install from source
 
@@ -28,6 +28,24 @@ Para iniciar o Idle, basta executar:
 Para sair do idle, basta escrever:
 
 ``` exit``` 
+
+# The Sintaxe
+
+A sintaxa aceita pela linguagem boole é compilada como segue:
+
+```
+program: statementList
+statementList: statement{statement 'BREAKLINE'}
+statement: declarationStatement | assignmentStatement | empty
+declarationStatement: type assignmentStatement
+assignmentStatement: variable 'ASSIGN' expr
+variable: 'IDENTIFIER'
+empty: 
+type: 'BIT'
+expr: term{'AND' term}
+term: factor{'AND' factor}
+factor: 'LITERALBIT'('LEFTBRACKET' expr 'RIGHTBRACKET') | 'NOT' factor
+```
 
 
 # Operators
@@ -65,14 +83,25 @@ In[3] > ~1
 Out[3] > False
 ```
 
-# The Sintaxe
+# Variable Declaration
 
-A sintaxa aceita pela linguagem boole é compilada como segue:
+Segue o padrão da maioria das linguagens tipadas: 
+` bit <id> = <value>`
+
+Para ver o valor das variáveis, basta digitar "_".
 
 ```
-expr: term{'AND' term}
-term: factor{'AND' factor}
-factor: LOGIC('LEFTBRACKET' expr 'RIGHTBRACKET') | 'NOT' factor
+In[0] > bit a = 0
+Out[0] > None
+
+In[1] > bit b = 1
+Out[1] > None
+
+In[2] > bit c = a * b
+Out[2] > None
+
+In[3] > _
+{'a': False, 'b': True, 'c': False}
 ```
 
 # Scripts
