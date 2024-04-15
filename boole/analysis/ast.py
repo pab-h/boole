@@ -59,6 +59,7 @@ class AssignmentNode(BinaryOperatorNode):
         super().__init__(token)
 
         self.type = ASTNodeTypes.ASSIGN
+        self.left: VariableNode = None
 
 class VariableNode(AST):
     def __init__(self, token: Token) -> None:
