@@ -11,10 +11,14 @@ class TokenTypes(Enum):
     NOT = auto()
     AND = auto()
     OR = auto()
-    LOGIC = auto()
     LEFTBRACKET = auto()
     RIGHTBRACKET = auto()
     WHITESPACE = auto()
+    IDENTIFIER = auto()
+    ASSIGN = auto()
+    BREAKLINE = auto()
+    LITERALBIT = auto()
+    BIT = auto()
 
 class Token(object): 
     def __init__(self, type: TokenTypes, value: Union[str, bool, None]) -> None:
