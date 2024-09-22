@@ -1,148 +1,247 @@
-from boole.analysis.token import Token
-from boole.analysis.token import TokenTypes
-from boole.analysis.token import TokenError
+from boole.analysis.token import *
 
-class Lexer(object):
+def advance(method):
+    def wrapper(self, *args, **kwargs):
+        result = method(self, *args, **kwargs)
+        self.index += 1
+        
+        return result
+    
+    return wrapper
+
+class Lexer:
     def __init__(self) -> None:
-        self.text = ""
         self.index = 0
-        self.textLen = 0
+        self.buffer = ""
 
-        self.keyworlds = {
-            "bit": Token(
-                type = TokenTypes.BIT,
-                value = TokenTypes.BIT.name
-            )
-        }
-
-    def nextToken(self) -> Token:
-        currentCharactere = self.text[self.index]
-
-        if currentCharactere in "&*":
-            token = Token(
-                type = TokenTypes.AND,
-                value = TokenTypes.AND.name
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere in "|+":
-            token = Token(
-                type = TokenTypes.OR,
-                value = TokenTypes.OR.name
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere in "01":
-            token = Token(
-                type = TokenTypes.LITERALBIT,
-                value = currentCharactere == "1"
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere in "({[":
-            token = Token(
-                type = TokenTypes.LEFTBRACKET,
-                value = currentCharactere 
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere in "]})":
-            token = Token(
-                type = TokenTypes.RIGHTBRACKET,
-                value = currentCharactere 
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere == " ":
-            token = Token(
-                type = TokenTypes.WHITESPACE,
-                value = " "
-            )
-            self.index += 1
-
-            return token
-
-        if currentCharactere in "!~":
-            token = Token(
-                type = TokenTypes.NOT,
-                value = currentCharactere
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere == "\n":
-            token = Token(
-                type = TokenTypes.BREAKLINE,
-                value = currentCharactere 
-            )
-            self.index += 1
-
-            return token
-        
-        if currentCharactere.isalpha():
-            token = self.identifier()
-
-            return token
-        
-        if currentCharactere in "=":
-            token = Token(
-                type = TokenTypes.ASSIGN,
-                value = currentCharactere
-            )
-            self.index += 1
-
-            return token
-
-        raise TokenError(f"token '{currentCharactere}' is not valid")
+    @property
+    def hasNextToken(self) -> bool:
+        return len(self.buffer) > self.index
+    
+    @property
+    def currentChar(self) -> str:
+        return self.buffer[self.index]
 
     def identifier(self) -> Token:
         identifier = ""
 
-        while self.textLen > self.index and self.text[self.index].isalpha():
-            identifier = identifier + self.text[self.index]
+        while self.hasNextToken and self.currentChar.isalpha():
+            identifier += self.currentChar
             self.index += 1
 
-        token = self.keyworlds.get(
+        return Token(
             identifier,
-            Token(
-                type = TokenTypes.IDENTIFIER,
-                value = identifier
+            TokenTypes.IDENTIFIER
+        )
+    
+    def assign(self) -> Token:
+        assign = self.currentChar
+        self.index += 1
+
+        if self.hasNextToken and self.currentChar == "=":
+            assign += self.currentChar
+            self.index += 1
+
+        if assign != ":=":
+            raise MalformedTokenError(
+                f"Malformed attribution token: { assign }"
             )
+        
+        return Token(
+            assign,
+            TokenTypes.ASSIGN
+        )
+    
+    def implication(self): 
+        implication = self.currentChar
+        self.index += 1
+
+        if self.hasNextToken and self.currentChar == ">":
+            implication += self.currentChar
+            self.index += 1
+
+        if implication != "->":
+            raise MalformedTokenError(
+                f"Malformed attribution token: { implication }"
+            )
+        
+        return Token(
+            implication,
+            TokenTypes.IMPLICATION
+        )
+    
+    def biimplication(self): 
+        biimplication = self.currentChar
+        self.index += 1
+
+        if self.hasNextToken and self.currentChar == "-":
+            biimplication += self.currentChar
+            self.index += 1
+
+        if self.hasNextToken and self.currentChar == ">":
+            biimplication += self.currentChar
+            self.index += 1
+
+        if biimplication != "<->":
+            raise MalformedTokenError(
+                f"Malformed attribution token: { biimplication }"
+            )
+        
+        return Token(
+            biimplication,
+            TokenTypes.IMPLICATION
         )
 
-        return token
+    @advance
+    def out(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.OUT
+        )
 
-    def process(self, text) -> list[Token]:
-        self.text = text
-        self.textLen = len(self.text)
+    @advance
+    def bit(self) -> Token:
+        return Token(
+            self.currentChar == "1",
+            TokenTypes.BIT
+        )
+
+    @advance
+    def _and(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.AND
+        )
+    
+    @advance
+    def _or(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.OR
+        )
+    
+    @advance
+    def xor(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.XOR
+        )
+    
+    @advance
+    def _not(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.NOT
+        )
+
+    @advance
+    def leftParent(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.LEFT_PARENT
+        )
+    
+    @advance
+    def rightParent(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.RIGHT_PARENT
+        )
+    
+    @advance
+    def leftBrackets(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.LEFT_BRACKETS
+        )
+    
+    @advance
+    def rightBrackets(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.RIGHT_BRACKETS
+        )
+
+    @advance
+    def comma(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.COMMA
+        )
+    
+    @advance
+    def whitespace(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.WHITESPACE
+        )
+
+
+    def nextToken(self) -> Token:
+        if self.currentChar == ">":
+            return self.out()
+
+        if self.currentChar in "01":
+            return self.bit()
+        
+        if self.currentChar == "*":
+            return self._and()
+        
+        if self.currentChar == "+":
+            return self._or()
+        
+        if self.currentChar == "^":
+            return self.xor()
+        
+        if self.currentChar == "!":
+            return self._not()
+        
+        if self.currentChar == "(":
+            return self.leftParent()
+        
+        if self.currentChar == ")":
+            return self.rightParent()
+        
+        if self.currentChar == "[":
+            return self.leftBrackets()
+        
+        if self.currentChar == "]":
+            return self.rightBrackets()
+        
+        if self.currentChar == ",":
+            return self.comma()
+
+        if self.currentChar == "-":
+            return self.implication()
+        
+        if self.currentChar == "<":
+            return self.biimplication()
+        
+        if self.currentChar == ":":
+            return self.assign()
+        
+        if self.currentChar.isalpha():
+            return self.identifier()
+
+        if self.currentChar.isspace():
+            return self.whitespace()
+
+        raise UnrecognizedTokenError(
+            f"Unrecognized token: { self.currentChar }"
+        )
+
+    def lex(self, buffer: str) -> list[Token]:
+        self.buffer = buffer
         self.index = 0
 
         tokens = []
 
-        while self.textLen > self.index:
+        while self.hasNextToken:
             token = self.nextToken()
 
             if token.type == TokenTypes.WHITESPACE:
                 continue
 
             tokens.append(token)
-
-        eof = Token(
-            type = TokenTypes.EOF, 
-            value = None
-        )
-
-        tokens.append(eof)
 
         return tokens
