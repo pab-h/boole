@@ -15,7 +15,7 @@ class Lexer:
         self.buffer = ""
 
     @property
-    def hasNextToken(self) -> bool:
+    def hasNextChar(self) -> bool:
         return len(self.buffer) > self.index
     
     @property
@@ -25,7 +25,7 @@ class Lexer:
     def identifier(self) -> Token:
         identifier = ""
 
-        while self.hasNextToken and self.currentChar.isalpha():
+        while self.hasNextChar and self.currentChar.isalpha():
             identifier += self.currentChar
             self.index += 1
 
@@ -38,7 +38,7 @@ class Lexer:
         assign = self.currentChar
         self.index += 1
 
-        if self.hasNextToken and self.currentChar == "=":
+        if self.hasNextChar and self.currentChar == "=":
             assign += self.currentChar
             self.index += 1
 
@@ -56,7 +56,7 @@ class Lexer:
         implication = self.currentChar
         self.index += 1
 
-        if self.hasNextToken and self.currentChar == ">":
+        if self.hasNextChar and self.currentChar == ">":
             implication += self.currentChar
             self.index += 1
 
@@ -74,11 +74,11 @@ class Lexer:
         biimplication = self.currentChar
         self.index += 1
 
-        if self.hasNextToken and self.currentChar == "-":
+        if self.hasNextChar and self.currentChar == "-":
             biimplication += self.currentChar
             self.index += 1
 
-        if self.hasNextToken and self.currentChar == ">":
+        if self.hasNextChar and self.currentChar == ">":
             biimplication += self.currentChar
             self.index += 1
 
@@ -236,7 +236,7 @@ class Lexer:
 
         tokens = []
 
-        while self.hasNextToken:
+        while self.hasNextChar:
             token = self.nextToken()
 
             if token.type == TokenTypes.WHITESPACE:
