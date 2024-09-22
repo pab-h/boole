@@ -1,0 +1,19 @@
+z(A, B, C) := A * B * C
+> table(z)
+
+w(A, B, C) := minterm(w)
+> w
+
+y(A, B, C) := maxterm(z)
+> y
+
+> karnaugh(z)
+
+v(A, B, C) := minimize(z)
+> v
+
+> graph(z)
+
+t := [0, 1, 1, 1, 0, 1]
+
+> graph(z, t)
