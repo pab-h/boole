@@ -1,7 +1,7 @@
-z(A, B) := !A * B ^ (A * B)
+fn z(A, B) := !A * B ^ (A * B)
 > z
 > z(0, 1)
 
-g(A, B) := A ^ B
-h(A, B, C) := g(A, z(B, C))
+fn g(A, B) := A ^ B
+fn h(A, B, C) := g(A, z(B, C))
 > h(0, 1, 1)
