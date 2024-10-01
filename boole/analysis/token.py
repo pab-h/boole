@@ -20,15 +20,18 @@ class TokenTypes(Enum):
     
     LEFT_PARENT = auto()
     RIGHT_PARENT = auto()
-    LEFT_BRACKETS = auto()
-    RIGHT_BRACKETS = auto()
+    LEFT_BRACKET = auto()
+    RIGHT_BRACKET = auto()
     
     ASSIGN = auto()
     COMMA = auto()
     
+    FN = auto()
     OUT = auto()
 
     WHITESPACE = auto()
+    BREAKLINE = auto()
+    EOF = auto()
 
 class Token:
     def __init__(self, value, _type: TokenTypes) -> None:
