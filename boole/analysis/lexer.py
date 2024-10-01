@@ -14,6 +14,13 @@ class Lexer:
         self.index = 0
         self.buffer = ""
 
+        self.keywords = {
+            "fn": Token(
+                "fn",
+                TokenTypes.FN
+            )
+        }
+
     @property
     def hasNextChar(self) -> bool:
         return len(self.buffer) > self.index
@@ -29,9 +36,12 @@ class Lexer:
             identifier += self.currentChar
             self.index += 1
 
-        return Token(
-            identifier,
-            TokenTypes.IDENTIFIER
+        return self.keywords.get(
+            identifier, 
+            Token(
+                identifier,
+                TokenTypes.IDENTIFIER
+            )
         )
     
     def assign(self) -> Token:
@@ -152,14 +162,14 @@ class Lexer:
     def leftBrackets(self) -> Token:
         return Token(
             self.currentChar,
-            TokenTypes.LEFT_BRACKETS
+            TokenTypes.LEFT_BRACKET
         )
     
     @advance
     def rightBrackets(self) -> Token:
         return Token(
             self.currentChar,
-            TokenTypes.RIGHT_BRACKETS
+            TokenTypes.RIGHT_BRACKET
         )
 
     @advance
@@ -175,7 +185,13 @@ class Lexer:
             self.currentChar,
             TokenTypes.WHITESPACE
         )
-
+    
+    @advance
+    def breakline(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.BREAKLINE
+        )
 
     def nextToken(self) -> Token:
         if self.currentChar == ">":
@@ -223,6 +239,9 @@ class Lexer:
         if self.currentChar.isalpha():
             return self.identifier()
 
+        if self.currentChar == "\n":
+            return self.breakline()
+
         if self.currentChar.isspace():
             return self.whitespace()
 
@@ -243,5 +262,12 @@ class Lexer:
                 continue
 
             tokens.append(token)
+
+        eof = Token(
+            "eof",
+            TokenTypes.EOF
+        )
+        
+        tokens.append(eof)
 
         return tokens
