@@ -20,7 +20,6 @@ class Parser:
     
     def eat(self, tokenType: TokenTypes):
         token = self.currentToken
-        print(token)
 
         if token.type == tokenType:
             self.index += 1
