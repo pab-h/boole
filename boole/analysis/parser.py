@@ -67,12 +67,7 @@ class Parser:
             TokenTypes.XOR
         ]:
             operator = self.currentToken
-            
-            if self.currentToken.type == TokenTypes.AND:
-                self.eat(TokenTypes.AND)
-            
-            if self.currentToken.type == TokenTypes.XOR:
-                self.eat(TokenTypes.XOR)
+            self.eat(operator.type)
 
             node = BinaryOperationNode(
                 operator,
@@ -91,15 +86,7 @@ class Parser:
             TokenTypes.BIIMPLICATION
         ]:
             operator = self.currentToken
-
-            if self.currentToken.type == TokenTypes.OR:
-                self.eat(TokenTypes.OR)
-            
-            if self.currentToken.type == TokenTypes.IMPLICATION:
-                self.eat(TokenTypes.IMPLICATION)
-
-            if self.currentToken.type == TokenTypes.BIIMPLICATION:
-                self.eat(TokenTypes.BIIMPLICATION)
+            self.eat(operator.type)
 
             node = BinaryOperationNode(
                 operator,
@@ -211,7 +198,6 @@ class Parser:
         return assign
 
     def statement(self) -> AST:
-
         if self.currentToken.type == TokenTypes.FN:
             return self.functionDefinition()
 
@@ -225,31 +211,35 @@ class Parser:
 
             return self.expression()
 
-        expression = self.expression()
+        return self.expression()
 
-        if self.currentToken.type == TokenTypes.BREAKLINE:
+    def cleanBreaklines(self):
+        while self.currentToken.type == TokenTypes.BREAKLINE:
             self.eat(TokenTypes.BREAKLINE)
 
-        return expression
-
     def program(self) -> CompoundNode:
+        self.cleanBreaklines()
+
         statements = []
 
         while self.currentToken.type != TokenTypes.EOF:
+            outOperator = None
+
             if self.currentToken.type == TokenTypes.OUT:
-                operator = self.currentToken
+                outOperator = self.currentToken
                 self.eat(TokenTypes.OUT)
 
-                statement = UnaryOperationNode(
-                    operator,
-                    self.statement()
-                )
-                statements.append(statement)
-
-                continue
-
             statement = self.statement()
+
+            if outOperator:
+                statement = UnaryOperationNode(
+                    outOperator,
+                    statement
+                )
+
             statements.append(statement)
+
+            self.cleanBreaklines()
 
         return CompoundNode(
             statements
