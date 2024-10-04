@@ -78,12 +78,12 @@ class FunctionCallNode(AST):
         self.arguments = arguments
 
 class BitNode(AST):
-    def __init__(self, value: Token) -> None:
+    def __init__(self, token: Token) -> None:
         super().__init__()
 
         self.type = ASTTypes.BIT
 
-        self.value = value
+        self.token = token
 
 class StreamNode(AST):
     def __init__(self, identifier: Token, bits: list[Token]) -> None:
