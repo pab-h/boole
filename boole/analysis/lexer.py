@@ -14,8 +14,15 @@ class Lexer:
         self.index = 0
         self.buffer = ""
 
+        self.keywords = {
+            "fn": Token(
+                "fn",
+                TokenTypes.FN
+            )
+        }
+
     @property
-    def hasNextToken(self) -> bool:
+    def hasNextChar(self) -> bool:
         return len(self.buffer) > self.index
     
     @property
@@ -25,20 +32,23 @@ class Lexer:
     def identifier(self) -> Token:
         identifier = ""
 
-        while self.hasNextToken and self.currentChar.isalpha():
+        while self.hasNextChar and self.currentChar.isalpha():
             identifier += self.currentChar
             self.index += 1
 
-        return Token(
-            identifier,
-            TokenTypes.IDENTIFIER
+        return self.keywords.get(
+            identifier, 
+            Token(
+                identifier,
+                TokenTypes.IDENTIFIER
+            )
         )
     
     def assign(self) -> Token:
         assign = self.currentChar
         self.index += 1
 
-        if self.hasNextToken and self.currentChar == "=":
+        if self.hasNextChar and self.currentChar == "=":
             assign += self.currentChar
             self.index += 1
 
@@ -56,7 +66,7 @@ class Lexer:
         implication = self.currentChar
         self.index += 1
 
-        if self.hasNextToken and self.currentChar == ">":
+        if self.hasNextChar and self.currentChar == ">":
             implication += self.currentChar
             self.index += 1
 
@@ -74,11 +84,11 @@ class Lexer:
         biimplication = self.currentChar
         self.index += 1
 
-        if self.hasNextToken and self.currentChar == "-":
+        if self.hasNextChar and self.currentChar == "-":
             biimplication += self.currentChar
             self.index += 1
 
-        if self.hasNextToken and self.currentChar == ">":
+        if self.hasNextChar and self.currentChar == ">":
             biimplication += self.currentChar
             self.index += 1
 
@@ -152,14 +162,14 @@ class Lexer:
     def leftBrackets(self) -> Token:
         return Token(
             self.currentChar,
-            TokenTypes.LEFT_BRACKETS
+            TokenTypes.LEFT_BRACKET
         )
     
     @advance
     def rightBrackets(self) -> Token:
         return Token(
             self.currentChar,
-            TokenTypes.RIGHT_BRACKETS
+            TokenTypes.RIGHT_BRACKET
         )
 
     @advance
@@ -175,7 +185,13 @@ class Lexer:
             self.currentChar,
             TokenTypes.WHITESPACE
         )
-
+    
+    @advance
+    def breakline(self) -> Token:
+        return Token(
+            self.currentChar,
+            TokenTypes.BREAKLINE
+        )
 
     def nextToken(self) -> Token:
         if self.currentChar == ">":
@@ -223,6 +239,9 @@ class Lexer:
         if self.currentChar.isalpha():
             return self.identifier()
 
+        if self.currentChar == "\n":
+            return self.breakline()
+
         if self.currentChar.isspace():
             return self.whitespace()
 
@@ -236,12 +255,19 @@ class Lexer:
 
         tokens = []
 
-        while self.hasNextToken:
+        while self.hasNextChar:
             token = self.nextToken()
 
             if token.type == TokenTypes.WHITESPACE:
                 continue
 
             tokens.append(token)
+
+        eof = Token(
+            "eof",
+            TokenTypes.EOF
+        )
+        
+        tokens.append(eof)
 
         return tokens
