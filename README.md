@@ -1,111 +1,100 @@
 # boole
-Um interpretador para a álgebra booleana
+
+Uma linguagem para Álgebra Booleana
 
 # Install from source
-
-Nesse processo, é necessário utilizar a ferramenta [poetry](https://python-poetry.org/). 
 
 Clone o repositório:
 
 ``` git clone https://github.com/pab-h/boole```
 
-Instale corretamente as dependência do projeto usando o **poetry**:
+# How run a boole program?
 
-``` poetry install``` 
+Para compilar um programa escrito em boole, você só precisa ter o [python](https://www.python.org/downloads/)
 
-Após instalado as dependências,  utilize o seguinte comando para iniciar o IDLE (Integrated Development and Learning Environment):
+Na raiz do projeto,
 
-``` poetry run idle``` 
-
-# The Idle
-
-Idle é um ambiente de desenvolvimento integrado para a linguagem Boole. Você pode escrever sentenças válidas para seus testes. Divirta-se.
-
-Para iniciar o Idle, basta executar:
-
-``` poetry run idle``` 
-
-Para sair do idle, basta escrever:
-
-``` exit``` 
-
-# The Sintaxe
-
-A sintaxa aceita pela linguagem boole é compilada como segue:
-
+```bash
+python main.py [source] --execute
 ```
-program: statementList
-statementList: statement{statement 'BREAKLINE'}
-statement: declarationStatement | assignmentStatement | empty
-declarationStatement: type assignmentStatement
-assignmentStatement: variable 'ASSIGN' expr
-variable: 'IDENTIFIER'
-empty: 
-type: 'BIT'
-expr: term{'AND' term}
-term: factor{'AND' factor}
-factor: 'LITERALBIT'('LEFTBRACKET' expr 'RIGHTBRACKET') | 'NOT' factor
+Tente executar os **exemplos**:
+```bash
+python main.py examples/1.bool --execute
+python main.py examples/2.bool --execute
+python main.py examples/3.bool --execute
 ```
 
+> Serão gerandos códigos python dentro da pasta *bin*
 
-# Operators
+# Docs
 
-## AND
+## Operators
+
+Os seguintes operadores booleanos foram implementados:
+
+| Operator | Description |
+| --- | --- |
+| * | AND  |
+| + | OR |
+| ^ | XOR |
+| ! | NOT |
+| -> | IF |
+| <-> | IF AND ONLY IF |
+
+Além disso, 
+
+| Operator | Description |
+| --- | --- |
+| > | PRINT*  |
+| := | ASSING |
+
+*Só pode ser usado no início de uma declaração
+
+## Variables
+
+```python
+[IDENTIFIER] := [BIT]
 ```
-In[0] > 1*0
-Out[0] > False
-
-In[1] > 1&1
-Out[1] > True
+```python
+A := 0
+B := 1
 ```
+## Functions
 
-## OR
+```python
+fn [IDENTIFIER]([PARAMS]) := [BODY]
 ```
-In[0] > 1+0
-Out[0] > True
+```python
+fn z(A, B) := !A * B ^ (A * B)
+fn g(A, B) := A ^ B
+fn h(A, B, C) := g(A, z(B, C))
 
-In[1] > 1|1
-Out[1] > True
-```
-
-## NOT
-```
-In[0] > !0
-Out[0] > True
-
-In[1] > !1 
-Out[1] > False
-
-In[2] > !!0
-Out[2] > False
-
-In[3] > ~1
-Out[3] > False
-```
-
-# Variable Declaration
-
-Segue o padrão da maioria das linguagens tipadas: 
-` bit <id> = <value>`
-
-Para ver o valor das variáveis, basta digitar "_".
-
-```
-In[0] > bit a = 0
-Out[0] > None
-
-In[1] > bit b = 1
-Out[1] > None
-
-In[2] > bit c = a * b
-Out[2] > None
-
-In[3] > _
-{'a': False, 'b': True, 'c': False}
+> z(0, 1)
+> h(0, 1, 1)
 ```
 
-# Scripts
+### Built-in Functions
 
-```poetry run idle``` -> Inicializa o idle
+| Operator | Description |
+| --- | --- |
+| table(.) | Mostra a tabela verdade da função  |
+| graph(z) | Mostra o gráfico de linha dessa função |
+| graph(z, ...) | Mostra o gráfico de linha dessa função dados os sinais passados |
 
-```poetry run test``` -> Executa os testes unitários
+```python
+fn z(A, B, C) := A * B * C
+
+table(z)
+
+graph(z)
+
+a[] := [0, 1, 1, 1, 0, 1]
+b[] := [0, 1, 1, 1, 0, 1]
+c[] := [0, 1, 1, 1, 0, 1]
+
+graph(z, a, b, c)
+```
+
+# The future
+- [ ] Impressão de funções;
+- [x] Mais funções embutidas: minterm, maxterm, minimize, clock;
