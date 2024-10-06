@@ -1,160 +1,259 @@
+from boole.analysis.token import *
 from boole.analysis.ast import *
 
-from boole.analysis.lexer import Lexer
-
-from boole.analysis.token import TokenTypes
-from boole.analysis.token import Token
-
-class ParserError(Exception):
-    pass
-
-class Parser(object):
+class Parser:
     def __init__(self) -> None:
-        self.lexer = Lexer()
-        self.tokens: list[Token] = []
         self.index = 0
+        self.stream: list[Token] = []
 
+    @property
     def currentToken(self) -> Token:
-        return self.tokens[self.index]
-
-    def eat(self, tokenType: TokenTypes) -> None:
-        if self.currentToken().type != tokenType:
-            raise ParserError(f"expected a { tokenType.name } token")
-        
-        self.index += 1
-
-    def program(self) -> AST:
-        return self.statementList()
+        return self.stream[self.index]
     
-    def statementList(self) -> AST:
-        compound = CompoundNode()
-
-        statement = self.statement()
-        compound.statements.append(statement)
-
-        while self.currentToken().type == TokenTypes.BREAKLINE:
-            self.eat(TokenTypes.BREAKLINE)
-
-            statement = self.statement()
-            compound.statements.append(statement)
-
-        if self.currentToken().type == TokenTypes.IDENTIFIER:
-            raise ParserError(f"what { self.currentToken().value } is doing here?")
-        
-        return compound
-        
-    def statement(self) -> AST:
-        if self.currentToken().type == TokenTypes.BIT:
-            return self.declarationStatement()
-
-        if self.currentToken().type == TokenTypes.IDENTIFIER:
-            return self.assignmentStatement()
-        
-        return self.empty()
+    @property
+    def nextToken(self) -> Token:
+        return self.stream[self.index + 1]
     
-    def type(self) -> AST:
-        type = TypeNode(self.currentToken())
+    @property
+    def hasNextToken(self) -> bool:
+        return len(self.stream) > self.index
+    
+    def eat(self, tokenType: TokenTypes):
+        token = self.currentToken
+
+        if token.type == tokenType:
+            self.index += 1
+            return
         
-        if type.token.type == TokenTypes.BIT:
-            self.eat(TokenTypes.BIT)
-
-        return type
-
-    def declarationStatement(self) -> AST:
-        declaration = VariableDeclarationNode()
-
-        declaration.variableType = self.type()
-        declaration.assignment = self.assignmentStatement() 
-
-        return declaration
-
-    def assignmentStatement(self) -> AST:
-        variable = self.variable()
-
-        assignment = AssignmentNode(self.currentToken())
-        self.eat(TokenTypes.ASSIGN)
-
-        expression = self.expr() 
-
-        assignment.left = variable
-        assignment.right = expression
-
-        return assignment
-
-    def variable(self) -> AST:
-        variable = VariableNode(self.currentToken())
-        self.eat(TokenTypes.IDENTIFIER)
-
-        return variable
-
-    def empty(self) -> AST:
-        return NoOperationNode()
+        raise SyntaxError(f"Unexpected Token { token.value }")
 
     def factor(self) -> AST:
+        if self.currentToken.type == TokenTypes.IDENTIFIER:
+            if self.hasNextToken and self.nextToken.type == TokenTypes.LEFT_PARENT:
+                return self.functionCall()
+            
+            identifier = self.currentToken
+            self.eat(TokenTypes.IDENTIFIER)
 
-        if self.currentToken().type == TokenTypes.LITERALBIT:
-            logicToken = self.currentToken()
-            self.eat(TokenTypes.LITERALBIT)
+            return IdentifierNode(identifier)
 
-            return LiteralBitNode(logicToken)
+        if self.currentToken.type == TokenTypes.BIT:
+            bitToken = self.currentToken
+            self.eat(TokenTypes.BIT)
+
+            return BitNode(bitToken)
         
-        if self.currentToken().type == TokenTypes.LEFTBRACKET:
-            self.eat(TokenTypes.LEFTBRACKET)
-            node = self.expr()
-            self.eat(TokenTypes.RIGHTBRACKET)
+        if self.currentToken.type == TokenTypes.LEFT_PARENT:
+            self.eat(TokenTypes.LEFT_PARENT)
+            expression = self.expression()
+            self.eat(TokenTypes.RIGHT_PARENT)
 
-            return node
+            return expression
         
-        if self.currentToken().type == TokenTypes.NOT:
-            notToken = self.currentToken()
+        if self.currentToken.type == TokenTypes.NOT:
+            notOperator = self.currentToken
             self.eat(TokenTypes.NOT)
 
-            node = UnaryOperatorNode(notToken)
-            node.expr = self.factor()
+            return UnaryOperationNode(
+                notOperator,
+                self.factor()
+            )
 
-            return node
-
-        return self.variable()
-    
     def term(self) -> AST:
-
         node = self.factor()
 
-        while self.currentToken().type == TokenTypes.AND:
-            operator = self.currentToken()
-            self.eat(TokenTypes.AND)
+        while self.currentToken.type in [
+            TokenTypes.AND, 
+            TokenTypes.XOR
+        ]:
+            operator = self.currentToken
+            self.eat(operator.type)
 
-            newNode = BinaryOperatorNode(operator)
-            newNode.left = node
-            newNode.right = self.factor()
-
-            node = newNode
-
+            node = BinaryOperationNode(
+                operator,
+                node,
+                self.factor()
+            )
+        
         return node
 
-    def expr(self) -> AST:
-
+    def expression(self) -> AST:
         node = self.term()
 
-        while self.currentToken().type == TokenTypes.OR:
-            operator = self.currentToken()
-            self.eat(TokenTypes.OR)
+        while self.currentToken.type in [
+            TokenTypes.OR, 
+            TokenTypes.IMPLICATION, 
+            TokenTypes.BIIMPLICATION
+        ]:
+            operator = self.currentToken
+            self.eat(operator.type)
 
-            newNode = BinaryOperatorNode(operator)
-            newNode.left = node
-            newNode.right = self.term()
-            
-            node = newNode
-
+            node = BinaryOperationNode(
+                operator,
+                node,
+                self.term()
+            )
+        
         return node
-    
-    def parse(self, text: str) -> AST:
-        self.tokens = self.lexer.process(text)
+
+    def functionDefinition(self) -> FunctionDefinitionNode:
+        self.eat(TokenTypes.FN)
+
+        identifier = self.currentToken
+        self.eat(TokenTypes.IDENTIFIER)
+        
+        self.eat(TokenTypes.LEFT_PARENT)
+
+        params = []
+
+        while self.currentToken.type != TokenTypes.RIGHT_PARENT:
+            param = self.currentToken
+            self.eat(TokenTypes.IDENTIFIER)
+            
+            if self.currentToken.type == TokenTypes.COMMA:
+                self.eat(TokenTypes.COMMA)
+
+            params.append(param)
+
+        self.eat(TokenTypes.RIGHT_PARENT) 
+
+        self.eat(TokenTypes.ASSIGN)
+
+        functionDefinition = FunctionDefinitionNode(
+            identifier,
+            params,
+            self.expression()
+        ) 
+        self.eat(TokenTypes.BREAKLINE)
+
+        return functionDefinition
+
+    def functionCall(self) -> FunctionCallNode:
+        identifier = self.currentToken
+        self.eat(TokenTypes.IDENTIFIER)
+        
+        self.eat(TokenTypes.LEFT_PARENT)
+
+        params = []
+
+        while self.currentToken.type != TokenTypes.RIGHT_PARENT:
+            param = self.expression()
+            
+            if self.currentToken.type == TokenTypes.COMMA:
+                self.eat(TokenTypes.COMMA)
+
+            params.append(param)
+
+        self.eat(TokenTypes.RIGHT_PARENT) 
+
+        functionCall = FunctionCallNode(
+            identifier,
+            params
+        ) 
+
+        return functionCall
+
+    def _stream(self) -> StreamNode:
+        identifier = self.currentToken
+        self.eat(TokenTypes.IDENTIFIER)
+        
+        self.eat(TokenTypes.LEFT_BRACKET)
+        self.eat(TokenTypes.RIGHT_BRACKET)
+        self.eat(TokenTypes.ASSIGN)
+
+        self.eat(TokenTypes.LEFT_BRACKET)
+
+        bits = []
+
+        while self.currentToken.type != TokenTypes.RIGHT_BRACKET:
+            bit = self.currentToken
+            self.eat(TokenTypes.BIT)
+
+            if self.currentToken.type == TokenTypes.COMMA:
+                self.eat(TokenTypes.COMMA)
+
+            bits.append(bit)
+
+        self.eat(TokenTypes.RIGHT_BRACKET)
+
+        stream = StreamNode(
+            identifier, 
+            bits
+        )
+        self.eat(TokenTypes.BREAKLINE)
+
+        return stream
+
+    def assign(self) -> AssignNode:
+        identifier = self.currentToken
+        self.eat(TokenTypes.IDENTIFIER)
+
+        self.eat(TokenTypes.ASSIGN)
+        
+        assign = AssignNode(
+            identifier, 
+            self.expression()
+        )
+
+        return assign
+
+    def statement(self) -> AST:
+        if self.currentToken.type == TokenTypes.FN:
+            return self.functionDefinition()
+
+        if self.currentToken.type == TokenTypes.IDENTIFIER:
+
+            if self.hasNextToken and self.nextToken.type == TokenTypes.LEFT_BRACKET:
+                return self._stream()
+
+            if self.hasNextToken and self.nextToken.type == TokenTypes.ASSIGN:
+                return self.assign()
+
+            return self.expression()
+
+        return self.expression()
+
+    def cleanBreaklines(self):
+        while self.currentToken.type == TokenTypes.BREAKLINE:
+            self.eat(TokenTypes.BREAKLINE)
+
+    def program(self) -> CompoundNode:
+        self.cleanBreaklines()
+
+        statements = []
+
+        while self.currentToken.type != TokenTypes.EOF:
+            outOperator = None
+
+            if self.currentToken.type == TokenTypes.OUT:
+                outOperator = self.currentToken
+                self.eat(TokenTypes.OUT)
+
+            statement = self.statement()
+
+            if outOperator:
+                statement = UnaryOperationNode(
+                    outOperator,
+                    statement
+                )
+
+            statements.append(statement)
+
+            self.cleanBreaklines()
+
+        return CompoundNode(
+            statements
+        )
+
+    def parse(self, stream: list[Token]) -> CompoundNode:
         self.index = 0
+        self.stream = stream
 
         program = self.program()
 
-        if self.currentToken().type != TokenTypes.EOF:
-            raise ParserError(f"The program is bad formated. Not expect { self.currentToken() } token")
+        if self.currentToken.type != TokenTypes.EOF:
+            raise SyntaxError(
+                f"Not expect {self.currentToken} token"
+            )
 
         return program

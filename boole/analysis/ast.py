@@ -3,89 +3,100 @@ from boole.analysis.token import Token
 from enum import Enum
 from enum import auto
 
-class ASTNodeTypes(Enum):
+class ASTTypes(Enum):
     ABSTRACT = auto()
-    BINARYOPERATOR = auto()
-    UNARYOPERATOR = auto()
-    LITERALBIT = auto()
+
     COMPOUND = auto()
     ASSIGN = auto()
-    VARIABLE = auto()
-    NOOPERATION = auto()
-    VARIABLEDECLARATION = auto()
-    TYPE = auto()
+    FUNCTION_DEFINITION = auto()
+    FUNCTION_CALL = auto()
 
-class AST(object):
+    UNARY_OPERATION = auto()
+    BINARY_OPERATION = auto()
+
+    BIT = auto()
+    STREAM = auto()
+    IDENTIFIER = auto()
+
+class AST:
     def __init__(self) -> None:
-        self.type = ASTNodeTypes.ABSTRACT
+        self.type = ASTTypes.ABSTRACT
 
-    def __repr__(self) -> str:
-        return f"AST[type = { self.type.name }]"
-
-class BinaryOperatorNode(AST):
-    def __init__(self, token: Token) -> None:
+class UnaryOperationNode(AST): 
+    def __init__(self, operator: Token, value: AST) -> None:
         super().__init__()
 
-        self.token = token
-        self.type = ASTNodeTypes.BINARYOPERATOR
-        self.left: AST = None 
-        self.right: AST = None 
+        self.type = ASTTypes.UNARY_OPERATION
 
-class UnaryOperatorNode(AST):
-    def __init__(self, token: Token) -> None:
+        self.operator = operator
+        self.value = value
+
+class BinaryOperationNode(AST):
+    def __init__(self, operator: Token, left: AST, right: AST) -> None:
         super().__init__()
 
-        self.token = token
-        self.type = ASTNodeTypes.UNARYOPERATOR
-        self.expr: AST = None 
+        self.type = ASTTypes.BINARY_OPERATION
 
-class LiteralBitNode(AST):
-    def __init__(self, token: Token) -> None:
+        self.operator = operator
+        self.left = left
+        self.right = right
+
+class AssignNode(AST):
+    def __init__(self, identifier: Token, value: AST) -> None:
         super().__init__()
 
-        self.token = token
-        self.type = ASTNodeTypes.LITERALBIT
-        self.value = token.value
+        self.type = ASTTypes.ASSIGN
+
+        self.identifier = identifier
+        self.value = value
 
 class CompoundNode(AST):
-    def __init__(self) -> None:
+    def __init__(self, children: list[AST]) -> None:
         super().__init__()
 
-        self.type = ASTNodeTypes.COMPOUND
-        self.statements: list[AST] = []
+        self.type = ASTTypes.COMPOUND
 
-class AssignmentNode(BinaryOperatorNode):
-    def __init__(self, token: Token) -> None:
-        super().__init__(token)
+        self.children = children
 
-        self.type = ASTNodeTypes.ASSIGN
-        self.left: VariableNode = None
+class FunctionDefinitionNode(AST):
+    def __init__(self, identifier: Token, params: list[Token], body: AST) -> None:
+        super().__init__()
 
-class VariableNode(AST):
+        self.type = ASTTypes.FUNCTION_DEFINITION
+
+        self.identifier = identifier
+        self.params = params
+        self.body = body
+
+class FunctionCallNode(AST):
+    def __init__(self, identifier: Token, arguments: list[AST]) -> None:
+        super().__init__()
+
+        self.type = ASTTypes.FUNCTION_CALL
+
+        self.identifier = identifier
+        self.arguments = arguments
+
+class BitNode(AST):
     def __init__(self, token: Token) -> None:
         super().__init__()
 
-        self.type = ASTNodeTypes.VARIABLE
+        self.type = ASTTypes.BIT
+
         self.token = token
-        self.value = self.token.value
 
-class TypeNode(AST):
-    def __init__(self, token: Token) -> None:
-        super().__init__()
-        self.type == ASTNodeTypes.TYPE
-        self.token = token
-
-class VariableDeclarationNode(AST):
-    def __init__(self) -> None:
+class StreamNode(AST):
+    def __init__(self, identifier: Token, bits: list[Token]) -> None:
         super().__init__()
 
-        self.type = ASTNodeTypes.VARIABLEDECLARATION
+        self.type = ASTTypes.STREAM
 
-        self.variableType: TypeNode = None
-        self.assignment: AssignmentNode = None
+        self.identifier = identifier
+        self.bits = bits
 
-class NoOperationNode(AST):
-    def __init__(self) -> None:
+class IdentifierNode(AST):
+    def __init__(self, identifier: Token) -> None:
         super().__init__()
 
-        self.type = ASTNodeTypes.NOOPERATION
+        self.type = ASTTypes.IDENTIFIER
+        self.identifier = identifier
