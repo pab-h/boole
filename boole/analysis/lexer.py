@@ -99,7 +99,7 @@ class Lexer:
         
         return Token(
             biimplication,
-            TokenTypes.IMPLICATION
+            TokenTypes.BIIMPLICATION
         )
 
     @advance
