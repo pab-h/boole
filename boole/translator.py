@@ -2,6 +2,10 @@ from boole.analysis.ast import *
 from boole.analysis.token import TokenTypes
 
 class Translator:
+    def __init__(self) -> None:
+        with open("include/stdlib.py") as file:
+            self.stdlib = file.read()
+
     def visitBit(self, node: BitNode) -> str:
         return str(node.token.value)
 
@@ -13,15 +17,25 @@ class Translator:
     def visitBinaryOperation(self, node: BinaryOperationNode) -> str:
         operator = node.operator
 
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+
         if operator.type == TokenTypes.IMPLICATION:
-            return f"implication({self.visit(node.left)}, {self.visit(node.right)})"
+            return f"implication({left}, {right})"
 
         if operator.type == TokenTypes.BIIMPLICATION:
-            return f"biimplication({self.visit(node.left)}, {self.visit(node.right)})"
+            return f"biimplication({left}, {right})"
 
-        return self.visit(node.left) + \
-                f" {operator.value} " + \
-                self.visit(node.right)
+        if operator.type == TokenTypes.AND:
+            return f"{left} and {right}"
+        
+        if operator.type == TokenTypes.OR:
+            return f"{left} or {right}"
+        
+        if operator.type == TokenTypes.XOR:
+            return f"{left} ^ {right}"
+
+        raise Exception("unrecognized binary operator")
 
     def visitCompound(self, node: CompoundNode) -> str:
         result = ""
@@ -40,7 +54,7 @@ class Translator:
             argumentBin = self.visit(argument)
             arguments.append(argumentBin)
 
-        return f"{identifier}(" + ",".join(arguments) + ")"
+        return f"{identifier}(" + ", ".join(arguments) + ")"
     
     def visitFunctionDefinition(self, node: FunctionDefinitionNode) -> str:
         identifier = node.identifier.value
@@ -52,8 +66,7 @@ class Translator:
 
         body = self.visit(node.body)
 
-        return f"{identifier} = lambda {",".join(params)}: {body}"
-
+        return f"{identifier} = lambda {", ".join(params)}: {body}"
 
     def visitIdentifier(self, node: IdentifierNode) -> str:
         return node.identifier.value
@@ -103,6 +116,8 @@ class Translator:
 
         if node.type == ASTTypes.UNARY_OPERATION:
             return self.visitUnary(node)
+        
+        raise Exception("unrecognized AST node")
 
     def translate(self, head: AST) -> str:
-        return self.visit(head)
+        return self.stdlib + self.visit(head)
